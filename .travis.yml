@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t ygtwhy/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true ygtwhy/react-test npm test  
+
+after_success:
+  - docker build -t ygtwhy/multi-client ./client
+  - docker build -t ygtwhy/multi-nginx ./nginx
+  - docker build -t ygtwhy/multi-server ./server
+  - docker build -t ygtwhy/multi-worker ./worker
+  # Log in to the Docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Push images to docker hub
+  - docker push ygtwhy/multi-client
+  - docker push ygtwhy/multi-nginx
+  - docker push ygtwhy/multi-server
+  - docker push ygtwhy/multi-worker
